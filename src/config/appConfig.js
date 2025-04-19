@@ -7,7 +7,7 @@ const appConfig = {
   mongoURI: process.env.MONGO_URI,
   mongoDBName: process.env.DB_NAME,
   jwtSecret: process.env.JWT_SECRET,
-  tokenExpire: "30d",
+  tokenExpire: '30d',
 };
 
 export default appConfig;

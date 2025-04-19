@@ -18,15 +18,15 @@ app.use(
   })
 );
 
-app.options('*', cors());
+// app.options('*', cors());
 
-app.use(
-  session({
-    secret: 'FlySecret',
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+// app.use(
+//   session({
+//     secret: 'FlySecret',
+//     resave: false,
+//     saveUninitialized: false,
+//   })
+// );
 app.use(express.static('public'));
 app.use(cookieParser());
 app.use(express.json());

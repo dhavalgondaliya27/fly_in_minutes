@@ -7,8 +7,9 @@ const connectDB = async () => {
       connectTimeoutMS: 45000,
       socketTimeoutMS: 45000,
     };
+
     const connectionInstance = await mongoose.connect(
-      `${appConfig.mongoDBName}/${appConfig.mongoDBName}`,
+      `${appConfig.mongoURI}/${appConfig.mongoDBName}`,
       options
     );
     console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`);

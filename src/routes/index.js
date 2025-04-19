@@ -1,10 +1,15 @@
-// import UserRouter from './routes/user/register.route.js';
+import express from 'express';
+const router = express.Router();
+
+// Sample route
+router.get('/ping', (req, res) => {
+  res.send('pong');
+});
 
 const apiVersion = '/api/v1';
 
 const mainRoutes = app => {
-//   for authentication with email, gooogle and identity verification
-    app.use(apiVersion);
+  app.use(apiVersion, router);  // ✅ Now properly attached
 };
 
 export default mainRoutes;
