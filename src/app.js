@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import compression from 'compression';
 import ResponseEnhancer from './utils/responseEnhancer.js';
-import mainRoute from './routes/index.js';
+import mainRoute from './api/route.js';
 import session from 'express-session';
 const app = express();
 app.use(
@@ -20,13 +20,13 @@ app.use(
 
 // app.options('*', cors());
 
-// app.use(
-//   session({
-//     secret: 'FlySecret',
-//     resave: false,
-//     saveUninitialized: false,
-//   })
-// );
+app.use(
+  session({
+    secret: 'FlySecret',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 app.use(express.static('public'));
 app.use(cookieParser());
 app.use(express.json());
