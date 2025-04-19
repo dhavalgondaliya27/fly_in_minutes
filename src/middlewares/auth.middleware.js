@@ -1,5 +1,5 @@
-const User = require("../models/users.model");
-import { decodeToken } from "../utils/jwt.utils";
+import User from "../api/users/users.model.js";
+import { decodeToken } from "../utils/jwt.js";
 
 export const verifyJWT = async (req, res, next) => {
   try {
