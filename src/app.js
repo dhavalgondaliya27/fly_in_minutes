@@ -36,7 +36,11 @@ app.use(ResponseEnhancer);
 app.get('/', (req, res) => {
   res.send('Fly is running ...');
 });
-app.use(mainRoute);
+mainRoute(app)
+
+app.use((req,res)=>{
+  return res.error(404,"Route not found")
+})
 
 app.use(helmet());
 app.use(compression());

@@ -1,9 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
+import bcrypt from 'bcrypt'
 const userSchema = new Schema(
   {
-    username: {
+    username:{
       type: String,
-      trim: true,
+      unique: true
     },
     email: {
       type: String,
@@ -14,6 +15,7 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
+      require:true
     },
     google_id: {
       type: String,
@@ -26,34 +28,27 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
-    resetPasswordToken: {
-      type: String,
-    },
-    resetPasswordExpires: {
-      type: Date,
-    },
-    auth0Id: {
-      type: String,
-    },
-    chatToken: {
-      type: String,
-    },
-    referral_code: {
-      type: String,
-      default: null,
-    },
-    referral_user_id: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
-    referral_code_discount_amount: {
-      type: Number,
-      default: 0,
-    },
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
 export const User = mongoose.model('User', userSchema);
