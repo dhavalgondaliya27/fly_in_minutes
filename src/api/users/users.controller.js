@@ -2,6 +2,7 @@ import { generateToken } from '../../utils/jwt.js';
 import { createUserSchema, loginUserSchema } from './user.validator.js';
 import { User } from './users.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import verifyGoogleToken from '../../services/google.js';
 
 const emailExist = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -13,11 +14,9 @@ const emailExist = asyncHandler(async (req, res) => {
   if (userExist) {
     if (userExist.google_id !== null) {
       return res.success(200, null, 'Email already exists, please login with google');
-    }
-    else if(userExist.password){
+    } else if (userExist.password) {
       return res.success(200, null, 'Please Enter Password');
-    }
-    else{
+    } else {
       userExist.otp = otp;
       userExist.otpExpiration = Date.now() + 1000 * 60 * 5;
       await userExist.save();
@@ -55,7 +54,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
   user.otpExpiration = null;
   await user.save();
   const accessToken = generateToken(user);
-  return res.success(200, {accessToken}, 'Otp verified successfully');
+  return res.success(200, { accessToken }, 'Otp verified successfully');
 });
 
 const createUser = asyncHandler(async (req, res) => {
@@ -93,7 +92,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({
     $or: [{ email: email }, { username: email }],
-  }).select('+password');
+  });
 
   if (!user) {
     return res.error(404, 'User not found');
@@ -117,4 +116,52 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   return res.success(200, user, 'User login successfully');
 });
 
-export { emailExist, verifyOtp, createUser, loginUser, getCurrentUser };
+const googleLogin = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.error(400, 'Token is required');
+  }
+
+  const googleUser = await verifyGoogleToken(token);
+  if (!googleUser) {
+    return res.error(401, null, 'Invalid token');
+  }
+
+  const { sub: googleId, email, given_name: firstName, family_name: lastName } = googleUser;
+
+  let user = await User.findOne({ googleId });
+  // If user not found by google_id, check by email
+  if (!user) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.password) {
+      return res.success(
+        200,
+        null,
+        'User already exists with this email. Please login with email and password'
+      );
+    }
+    const username = email.split('@')[0];
+
+    // Create new user
+    user = await User.create({
+      firstName,
+      lastName,
+      username,
+      googleId,
+      email,
+    });
+  }
+  
+  const accessToken = generateToken(user);
+  return res.success(
+    200,
+    {
+      user,
+      accessToken,
+    },
+    'User logged in successfully'
+  );
+});
+
+export { emailExist, verifyOtp, createUser, loginUser, getCurrentUser, googleLogin };

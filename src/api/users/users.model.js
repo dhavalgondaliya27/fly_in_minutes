@@ -27,9 +27,8 @@ const userSchema = new Schema(
     password: {
       type: String,
       require:true,
-      select: false,
     },
-    google_id: {
+    googleId: {
       type: String,
       default: null,
     },
