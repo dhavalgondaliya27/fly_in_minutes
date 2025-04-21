@@ -2,9 +2,17 @@ import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt'
 const userSchema = new Schema(
   {
-    username:{
+    firstName: {
       type: String,
-      unique: true
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      trim: true,
+    },
+    username: {
+      type: String,
+      unique: true,
     },
     email: {
       type: String,
@@ -13,12 +21,23 @@ const userSchema = new Schema(
       trim: true,
       sparse: true,
     },
+    DOB: {
+      type: Date,
+    },
     password: {
       type: String,
-      require:true
+      require: true,
     },
     google_id: {
       type: String,
+      default: null,
+    },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpExpiration: {
+      type: Date,
       default: null,
     },
     is_admin: {
