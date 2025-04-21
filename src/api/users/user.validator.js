@@ -1,14 +1,13 @@
 import Joi from 'joi';
 
 export const createUserSchema = Joi.object({
-  email: Joi.string().email().trim().lowercase().required().messages({
-    'string.email': 'Email must be a valid email address',
-    'string.empty': 'Email is required',
-  }),
-
+  firstName: Joi.string().trim().optional(),
+  lastName: Joi.string().trim().optional(),
+  email: Joi.string().email().lowercase().trim().optional(),
+  DOB: Joi.date().optional(),
   password: Joi.string().min(6).required().messages({
+    'any.required': 'Password is required',
     'string.min': 'Password must be at least 6 characters long',
-    'string.empty': 'Password is required',
   }),
 });
 
