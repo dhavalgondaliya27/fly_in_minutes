@@ -93,7 +93,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({
     $or: [{ email: email }, { username: email }],
-  });
+  }).select('+password');
 
   if (!user) {
     return res.error(404, 'User not found');

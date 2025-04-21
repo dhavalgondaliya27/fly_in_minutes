@@ -26,7 +26,8 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      require: true,
+      require:true,
+      select: false,
     },
     google_id: {
       type: String,
@@ -40,9 +41,10 @@ const userSchema = new Schema(
       type: Date,
       default: null,
     },
-    is_admin: {
-      type: Boolean,
-      default: false,
+    role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user',
     },
     refreshToken: {
       type: String,
