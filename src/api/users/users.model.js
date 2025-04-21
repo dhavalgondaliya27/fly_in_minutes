@@ -1,10 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt';
 const userSchema = new Schema(
   {
-    username:{
+    username: {
       type: String,
-      unique: true
+      unique: true,
     },
     email: {
       type: String,
@@ -15,7 +15,7 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      require:true
+      require: true,
     },
     google_id: {
       type: String,
@@ -27,6 +27,11 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
+    },
+    status: {
+      type: Number,
+      enum: [0, 1, -1],
+      default: 1,
     },
   },
   {
