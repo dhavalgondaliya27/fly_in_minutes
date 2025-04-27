@@ -1,9 +1,19 @@
-// Category Routes
-const express = require('express');
-const router = express.Router();
-const controller = require('./category.controller');
-const validator = require('./category.validator');
+import { Router } from 'express';
+import {
+  createCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
+} from './category.controller.js';
+import { checkRole, verifyJWT } from '../../middlewares/auth.middleware.js';
 
-// Routes will be added here
+const categoryRouter = Router();
 
-module.exports = router; 
+categoryRouter.post('/category/create', checkRole(['admin']), createCategory);
+categoryRouter.get('/category/:categoryId', getCategoryById);
+categoryRouter.get('/category/all', getAllCategories);
+categoryRouter.put('/category/update/:categoryId', checkRole(['admin']), updateCategory);
+categoryRouter.delete('/category/delete/:categoryId', checkRole(['admin']), deleteCategory);
+
+export default categoryRouter;

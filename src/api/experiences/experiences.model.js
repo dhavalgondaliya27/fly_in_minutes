@@ -45,6 +45,37 @@ const experienceSchema = new Schema(
         },
       },
     ],
+    instant_confirmation: {
+      type: Boolean,
+      default: false,
+    },
+    category_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true,
+    },
+    sub_category_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SubCategory',
+      required: true,
+    },
+    experience_details_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ExperienceDetail',
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    experience_address_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ExperienceAddress',
+    },
+    destination_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Destination',
+    },
   },
   {
     timestamps: true,
