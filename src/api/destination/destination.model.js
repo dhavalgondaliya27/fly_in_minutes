@@ -1,10 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
 
-const categorySchema = new Schema(
+const destinationSchema = new Schema(
   {
-    category_name: {
+    destination_name: {
       type: String,
       required: true,
+      unique: true,
     },
   },
   {
@@ -13,4 +14,4 @@ const categorySchema = new Schema(
   }
 );
 
-export const Category = mongoose.model('Category', categorySchema);
+export const Destination = mongoose.model('Destination', destinationSchema);
