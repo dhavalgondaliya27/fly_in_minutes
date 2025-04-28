@@ -9,6 +9,10 @@ const appConfig = {
   jwtSecret: process.env.JWT_SECRET,
   tokenExpire: '30d',
   googleClientId: process.env.GOOGLE_CLIENT_ID,
+  awsAccessKey: process.env.AWS_ACCESS_KEY_ID,
+  awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
+  awsRegion: process.env.AWS_REGION,
+  awsS3BucketName: process.env.AWS_S3_BUCKET_NAME,
 };
 
 export default appConfig;

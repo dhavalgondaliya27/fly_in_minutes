@@ -6,7 +6,7 @@ import compression from 'compression';
 import ResponseEnhancer from './utils/responseEnhancer.js';
 import mainRoute from './api/route.js';
 import session from 'express-session';
-import fileUpload from "express-fileupload";
+import { uploadFile } from './middlewares/upload.middleware.js'; // Your multer import
 
 const app = express();
 
@@ -19,8 +19,6 @@ app.use(
   })
 );
 
-// app.options('*', cors());
-
 app.use(
   session({
     secret: 'FlySecret',
@@ -32,7 +30,8 @@ app.use(
 app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload({ createParentPath: true }));
+
+// No need for express-fileupload anymore, only multer is used
 
 app.use(cookieParser());
 
@@ -50,3 +49,4 @@ app.use(helmet());
 app.use(compression());
 
 export { app };
+  
