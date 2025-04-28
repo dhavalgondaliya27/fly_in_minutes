@@ -30,18 +30,19 @@ export const checkRole = (allowedRoles) => async (req, res, next) => {
   try {
     let token = req.header("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      res.error(401, "Unauthorized request")
+      return res.error(401, "Unauthorized request")
     }
 
     const decodedUser = await decodeToken(token);
 
     if (!decodedUser) {
-      res.error(400, "Invalid token payload")
+      return res.error(400, "Invalid token payload")
     }
+    console.log(decodedUser);
 
     const user = await User.findById(decodedUser._id);
     if (!user) {
-      res.error(404, "User not found")
+      return res.error(404, "User not found")
     }
 
     req.user = user;
@@ -50,13 +51,13 @@ export const checkRole = (allowedRoles) => async (req, res, next) => {
     if (req.user && allowedRoles.includes(req.user.role)) {
       next();
     } else {
-      res.error(
+      return res.error(
           403,
           "User not authorized to perform this action"
         )
     }
   } catch (err) {
     console.error(err);
-    res.error(500, "Internal server error");
+    return res.error(500, "Internal server error");
   }
 };

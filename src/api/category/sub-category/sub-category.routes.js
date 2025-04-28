@@ -1,9 +1,17 @@
-// Category Routes
-const express = require('express');
-const router = express.Router();
-const controller = require('./category.controller');
-const validator = require('./sub-category.validator');
+import { Router } from 'express';
+import {
+  createSubCategory,
+  updateSubCategory,
+  deleteSubCategory,
+  getSubCategoryByCategoryId,
+} from './sub-category.controller.js';
+import { checkRole } from '../../../middlewares/auth.middleware.js';
 
-// Routes will be added here
+const subCategoryRouter = Router();
 
-module.exports = router; 
+subCategoryRouter.post('/create', checkRole('admin'), createSubCategory);
+subCategoryRouter.put('/:subCategoryId', checkRole('admin'), updateSubCategory);
+subCategoryRouter.delete('/:subCategoryId', checkRole('admin'), deleteSubCategory);
+subCategoryRouter.get('/:categoryId', getSubCategoryByCategoryId);
+
+export default subCategoryRouter;

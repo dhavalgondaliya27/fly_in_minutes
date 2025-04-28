@@ -10,7 +10,7 @@
       },
       category_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',  // Refers to the 'Category' model
+        ref: 'Category',
         required: true,
       },
     },
