@@ -6,6 +6,9 @@ const categorySchema = new Schema(
       type: String,
       required: true,
     },
+    category_photo: {
+      type: [String],
+    },
   },
   {
     timestamps: true,

@@ -7,13 +7,34 @@ import {
   deleteCategory,
 } from './category.controller.js';
 import { checkRole, verifyJWT } from '../../middlewares/auth.middleware.js';
+import { uploadFile } from '../../middlewares/upload.middleware.js'; // multer import
 
 const categoryRouter = Router();
 
-categoryRouter.post('/category/create', checkRole(['admin']), createCategory);
-categoryRouter.get('/category/:categoryId', getCategoryById);
+categoryRouter.post(
+  '/category/create',
+  verifyJWT,
+  checkRole(['admin']),
+  uploadFile.array('photos', 10),
+  createCategory
+);
+
 categoryRouter.get('/category/all', getAllCategories);
-categoryRouter.put('/category/update/:categoryId', checkRole(['admin']), updateCategory);
-categoryRouter.delete('/category/delete/:categoryId', checkRole(['admin']), deleteCategory);
+categoryRouter.get('/category/:categoryId', getCategoryById);
+
+categoryRouter.put(
+  '/category/update/:categoryId',
+  verifyJWT,
+  checkRole(['admin']),
+  uploadFile.array('photos', 10), // Use multer for file uploads
+  updateCategory
+);
+
+categoryRouter.delete(
+  '/category/delete/:categoryId',
+  verifyJWT,
+  checkRole(['admin']),
+  deleteCategory
+);
 
 export default categoryRouter;
