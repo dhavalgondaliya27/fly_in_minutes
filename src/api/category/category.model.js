@@ -9,6 +9,10 @@ const categorySchema = new Schema(
     category_photo: {
       type: [String],
     },
+    status: {
+      type: Number,
+      default: 1,
+    },
   },
   {
     timestamps: true,

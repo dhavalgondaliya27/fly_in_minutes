@@ -1,5 +1,7 @@
 import categoryRouter from "./category/category.routes.js";
 import subCategoryRouter from "./category/sub-category/sub-category.routes.js";
+import cityRouter from "./destination/city/city.routes.js";
+import destinationRouter from "./destination/destination.routes.js";
 import userRouter from "./users/users.routes.js";
 
 const apiVersion = '/api/v1';
@@ -9,6 +11,8 @@ const mainRoutes = app => {
     app.use(`${apiVersion}/user`, userRouter);
     app.use(`${apiVersion}/category`, categoryRouter);
     app.use(`${apiVersion}/subcategory`, subCategoryRouter);
+    app.use(`${apiVersion}/destination`, destinationRouter);
+    app.use(`${apiVersion}/city`, cityRouter);
 };
 
 export default mainRoutes;

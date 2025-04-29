@@ -38,7 +38,6 @@ export const checkRole = (allowedRoles) => async (req, res, next) => {
     if (!decodedUser) {
       return res.error(400, "Invalid token payload")
     }
-    console.log(decodedUser);
 
     const user = await User.findById(decodedUser._id);
     if (!user) {

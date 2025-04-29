@@ -63,7 +63,6 @@ const createUser = asyncHandler(async (req, res) => {
   if (error) {
     return res.error(400, error.message);
   }
-  console.log(req.user);
   const userId = req.user._id;
   const { firstName, lastName, email, DOB, password } = req.body;
   const username = email.split('@')[0];

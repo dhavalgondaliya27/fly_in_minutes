@@ -14,6 +14,10 @@ const experienceAddressSchema = new Schema(
     country: { type: String },
     postal_code: { type: String },
     landmark: { type: String },
+    status: {
+      type: Number,
+      default: 1,
+    },
   },
   {
     timestamps: true,
