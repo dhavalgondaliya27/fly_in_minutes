@@ -12,29 +12,24 @@ import { uploadFile } from '../../middlewares/upload.middleware.js'; // multer i
 const categoryRouter = Router();
 
 categoryRouter.post(
-  '/category/create',
+  '/create',
   verifyJWT,
   checkRole('admin'),
   uploadFile.array('photos', 10),
   createCategory
 );
 
-categoryRouter.get('/category/all', getAllCategories);
-categoryRouter.get('/category/:categoryId', getCategoryById);
+categoryRouter.get('/all', getAllCategories);
+categoryRouter.get('/:categoryId', getCategoryById);
 
 categoryRouter.put(
-  '/category/update/:categoryId',
+  '/update/:categoryId',
   verifyJWT,
   checkRole('admin'),
   uploadFile.array('photos', 10), // Use multer for file uploads
   updateCategory
 );
 
-categoryRouter.delete(
-  '/category/delete/:categoryId',
-  verifyJWT,
-  checkRole('admin'),
-  deleteCategory
-);
+categoryRouter.delete('/delete/:categoryId', verifyJWT, checkRole('admin'), deleteCategory);
 
 export default categoryRouter;

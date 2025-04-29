@@ -30,6 +30,10 @@ const reviewSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    status: {
+      type: Number,
+      default: 1, // 1 for active, 0 for inactive
+    },
   },
   {
     timestamps: true,

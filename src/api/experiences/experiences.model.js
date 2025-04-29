@@ -76,6 +76,14 @@ const experienceSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Destination',
     },
+    city_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'City',
+    },
+    status: {
+      type: Number,
+      default: 1,
+    },
   },
   {
     timestamps: true,

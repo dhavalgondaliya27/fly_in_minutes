@@ -20,6 +20,10 @@ const experienceDetailSchema = new Schema(
       type: [String],
       default: [],
     },
+    status: {
+      type: Number,
+      default: 1,
+    },
   },
   {
     timestamps: true,

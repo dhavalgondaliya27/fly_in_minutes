@@ -6,4 +6,4 @@ const validator = require('./experiences.validator');
 
 // Routes will be added here
 
-module.exports = router; 
+module.exports = router;

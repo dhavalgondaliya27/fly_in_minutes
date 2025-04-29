@@ -10,7 +10,7 @@ const createCategory = asyncHandler(async (req, res) => {
     return res.error(400, 'Category name is required');
   }
 
-  const exists = await Category.findOne({ category_name: category_name.trim() });
+  const exists = await Category.findOne({ category_name: category_name.trim(), status: 1 });
   if (exists) {
     return res.error(400, 'Category already exists');
   }
@@ -18,6 +18,7 @@ const createCategory = asyncHandler(async (req, res) => {
   const newCategory = await Category.create({
     category_name: category_name.trim(),
     category_photo: [],
+    status: 1, // explicitly set, even though default
   });
 
   if (files && files.length > 0) {
@@ -36,8 +37,9 @@ const createCategory = asyncHandler(async (req, res) => {
   return res.success(201, newCategory, 'Category created successfully');
 });
 
+
 const getAllCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find().sort({ createdAt: -1 });
+  const categories = await Category.find({ status: 1 }).sort({ createdAt: -1 });
 
   const categoriesWithSignedUrls = await Promise.all(
     categories.map(async category => {
@@ -56,10 +58,11 @@ const getAllCategories = asyncHandler(async (req, res) => {
   return res.success(200, categoriesWithSignedUrls, 'Categories fetched successfully');
 });
 
+
 const getCategoryById = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
 
-  const category = await Category.findById(categoryId);
+  const category = await Category.findOne({ _id: categoryId, status: 1 });
   if (!category) {
     return res.error(404, 'Category not found');
   }
@@ -76,6 +79,7 @@ const getCategoryById = asyncHandler(async (req, res) => {
   return res.success(200, categoryData, 'Category fetched successfully');
 });
 
+
 const updateCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
   const { category_name } = req.body;
@@ -85,7 +89,7 @@ const updateCategory = asyncHandler(async (req, res) => {
     return res.error(400, 'Category name is required');
   }
 
-  const category = await Category.findById(categoryId);
+  const category = await Category.findOne({ _id: categoryId, status: 1 });
   if (!category) {
     return res.error(404, 'Category not found');
   }
@@ -114,21 +118,20 @@ const updateCategory = asyncHandler(async (req, res) => {
   return res.success(200, category, 'Category updated successfully');
 });
 
+
 const deleteCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
 
-  const category = await Category.findByIdAndDelete(categoryId);
+  const category = await Category.findOne({ _id: categoryId, status: 1 });
   if (!category) {
     return res.error(404, 'Category not found');
   }
 
-  if (category.category_photo && category.category_photo.length > 0) {
-    for (const key of category.category_photo) {
-      await deleteFile(key);
-    }
-  }
+  category.status = 0;
+  await category.save();
 
   return res.success(200, null, 'Category deleted successfully');
 });
+
 
 export { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory };
