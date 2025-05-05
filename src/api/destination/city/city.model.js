@@ -14,13 +14,6 @@ const citySchema = new Schema(
         required: true,
       },
     ],
-    sub_category_id: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubCategory',
-        required: true,
-      },
-    ],
     destination_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Destination',

@@ -1,8 +1,13 @@
-// Experiences Validator
-const Joi = require('joi');
+import Joi from "joi";
 
-// Validation schemas will be added here
+export const createCitySchema = Joi.object({
+  city_name: Joi.string().required(),
+  category_id: Joi.array().items(Joi.string()).required(),
+  destination_id: Joi.string().required(),
+});
 
-module.exports = {
-  // Export validation schemas here
-}; 
+export const updateCitySchema = Joi.object({
+  city_name: Joi.string().optional(),
+  category_id: Joi.array().items(Joi.string()).optional(),
+  destination_id: Joi.string().optional(),
+});

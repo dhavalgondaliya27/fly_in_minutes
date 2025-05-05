@@ -1,8 +1,13 @@
-// Category Validator
-const Joi = require('joi');
+import Joi from "joi";
 
-// Validation schemas will be added here
+export const createCategorySchema = Joi.object({
+  category_name: Joi.string().required(),
+  parent_category_id: Joi.string().optional(),
+  category_photo: Joi.array().items(Joi.string()).optional(),
+});
 
-module.exports = {
-  // Export validation schemas here
-}; 
+export const updateCategorySchema = Joi.object({
+  category_name: Joi.string().optional(),
+  parent_category_id: Joi.string().optional(),
+  category_photo: Joi.array().items(Joi.string()).optional(),
+});

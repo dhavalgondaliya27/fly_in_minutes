@@ -1,25 +1,32 @@
 import { Category } from './category.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { uploadFile, deleteFile, getSignedUrl } from '../../services/s3-bucket/s3-service.js';
+import { createCategorySchema, updateCategorySchema } from './category.validator.js';
 
 const createCategory = asyncHandler(async (req, res) => {
-  const { category_name } = req.body;
-  const files = req.files;
-
-  if (!category_name) {
-    return res.error(400, 'Category name is required');
+  const { error } = createCategorySchema.validate(req.body);
+  if (error) {
+    return res.error(400, error.message);
   }
+  const { category_name, parent_category_id } = req.body;
+  const files = req.files;
 
   const exists = await Category.findOne({ category_name: category_name.trim(), status: 1 });
   if (exists) {
     return res.error(400, 'Category already exists');
   }
 
-  const newCategory = await Category.create({
+  const categoryData = {
     category_name: category_name.trim(),
     category_photo: [],
-    status: 1, // explicitly set, even though default
-  });
+    status: 1,
+  };
+
+  if (parent_category_id) {
+    categoryData.parent_category_id = parent_category_id;
+  }
+
+  const newCategory = await Category.create(categoryData);
 
   if (files && files.length > 0) {
     const uploadedKeys = [];
@@ -37,19 +44,22 @@ const createCategory = asyncHandler(async (req, res) => {
   return res.success(201, newCategory, 'Category created successfully');
 });
 
-
 const getAllCategories = asyncHandler(async (req, res) => {
   const categories = await Category.find({ status: 1 }).sort({ createdAt: -1 });
+
+  if (!categories || categories.length === 0) {
+    return res.success(200, [], 'No categories found');
+  }
 
   const categoriesWithSignedUrls = await Promise.all(
     categories.map(async category => {
       const categoryData = category.toObject();
       if (category.category_photo && category.category_photo.length > 0) {
-        categoryData.category_photo_urls = await Promise.all(
+        categoryData.category_photo = await Promise.all(
           category.category_photo.map(async key => await getSignedUrl(key))
         );
       } else {
-        categoryData.category_photo_urls = [];
+        categoryData.category_photo = [];
       }
       return categoryData;
     })
@@ -57,7 +67,6 @@ const getAllCategories = asyncHandler(async (req, res) => {
 
   return res.success(200, categoriesWithSignedUrls, 'Categories fetched successfully');
 });
-
 
 const getCategoryById = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
@@ -69,25 +78,24 @@ const getCategoryById = asyncHandler(async (req, res) => {
 
   const categoryData = category.toObject();
   if (category.category_photo && category.category_photo.length > 0) {
-    categoryData.category_photo_urls = await Promise.all(
+    categoryData.category_photo = await Promise.all(
       category.category_photo.map(async key => await getSignedUrl(key))
     );
   } else {
-    categoryData.category_photo_urls = [];
+    categoryData.category_photo = [];
   }
 
   return res.success(200, categoryData, 'Category fetched successfully');
 });
 
-
 const updateCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
-  const { category_name } = req.body;
-  const files = req.files;
-
-  if (!category_name) {
-    return res.error(400, 'Category name is required');
+  const { category_name, parent_category_id } = req.body;
+  const { error } = updateCategorySchema.validate(req.body);
+  if (error) {
+    return res.error(400, error.message);
   }
+  const files = req.files;
 
   const category = await Category.findOne({ _id: categoryId, status: 1 });
   if (!category) {
@@ -112,12 +120,14 @@ const updateCategory = asyncHandler(async (req, res) => {
     category.category_photo = uploadedKeys;
   }
 
-  category.category_name = category_name.trim();
+  if (parent_category_id) {
+    category.parent_category_id = parent_category_id;
+  }
+  category.category_name = category_name.trim() || category.category_name;
   await category.save();
 
   return res.success(200, category, 'Category updated successfully');
 });
-
 
 const deleteCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
@@ -133,5 +143,20 @@ const deleteCategory = asyncHandler(async (req, res) => {
   return res.success(200, null, 'Category deleted successfully');
 });
 
+const getSubCategoryByCategoryId = asyncHandler(async (req, res) => {
+  const { categoryId } = req.params;
+  const subCategories = await Category.find({ parent_category_id: categoryId, status: 1 });
+  if (!subCategories || subCategories.length === 0) {
+    return res.success(200, [], 'No sub categories found');
+  }
+  return res.success(200, subCategories, 'Sub categories fetched successfully');
+});
 
-export { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory };
+export {
+  createCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
+  getSubCategoryByCategoryId,
+};

@@ -1,11 +1,13 @@
 import { Destination } from './destination.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import { createDestinationSchema } from './destination.validator.js';
 
 const createDestination = asyncHandler(async (req, res) => {
   const { destination_name } = req.body;
 
-  if (!destination_name) {
-    return res.error(400, 'Destination name is required');
+  const { error } = createDestinationSchema.validate(req.body);
+  if (error) {
+    return res.error(400, error.message);
   }
 
   const exists = await Destination.findOne({ destination_name: destination_name.trim(), status: 1 });
@@ -15,7 +17,7 @@ const createDestination = asyncHandler(async (req, res) => {
 
   const newDestination = await Destination.create({
     destination_name: destination_name.trim(),
-    status: 1, // default active
+    status: 1,
   });
 
   return res.success(201, newDestination, 'Destination created successfully');
@@ -40,6 +42,11 @@ const getDestinationById = asyncHandler(async (req, res) => {
 const updateDestination = asyncHandler(async (req, res) => {
   const { destinationId } = req.params;
   const { destination_name } = req.body;
+
+  const { error } = createDestinationSchema.validate(req.body);
+  if (error) {
+    return res.error(400, error.message);
+  }
 
   const destination = await Destination.findOne({ _id: destinationId, status: 1 });
   if (!destination) {

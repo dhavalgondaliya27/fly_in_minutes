@@ -6,14 +6,13 @@ import {
   updateDestination,
   deleteDestination,
 } from './destination.controller.js';
-import { checkRole, verifyJWT } from '../../middlewares/auth.middleware.js';
+import { checkRole } from '../../middlewares/auth.middleware.js';
 
 const destinationRouter = Router();
 
 destinationRouter.post(
   '/create',
-  verifyJWT,
-  checkRole(['admin']),
+  checkRole('admin'),
   createDestination
 );
 
@@ -22,15 +21,13 @@ destinationRouter.get('/:destinationId', getDestinationById);
 
 destinationRouter.put(
   '/update/:destinationId',
-  verifyJWT,
-  checkRole(['admin']),
+  checkRole('admin'),
   updateDestination
 );
 
 destinationRouter.delete(
   '/delete/:destinationId',
-  verifyJWT,
-  checkRole(['admin']),
+  checkRole('admin'),
   deleteDestination
 );
 

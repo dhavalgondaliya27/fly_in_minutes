@@ -2,6 +2,11 @@ import mongoose, { Schema } from 'mongoose';
 
 const categorySchema = new Schema(
   {
+    parent_category_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+    },
     category_name: {
       type: String,
       required: true,

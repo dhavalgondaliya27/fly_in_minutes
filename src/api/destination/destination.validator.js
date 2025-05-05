@@ -1,8 +1,5 @@
-// Experiences Validator
-const Joi = require('joi');
+import Joi from "joi";
 
-// Validation schemas will be added here
-
-module.exports = {
-  // Export validation schemas here
-}; 
+export const createDestinationSchema = Joi.object({
+  destination_name: Joi.string().required()
+});
