@@ -13,6 +13,8 @@ const appConfig = {
   awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
   awsRegion: process.env.AWS_REGION,
   awsS3BucketName: process.env.AWS_S3_BUCKET_NAME,
+  emailSender: process.env.EMAIL_SENDER,
+  emailPassword: process.env.EMAIL_PASSWORD,
 };
 
 export default appConfig;

@@ -5,39 +5,43 @@ import { createCategorySchema, updateCategorySchema } from './category.validator
 
 const createCategory = asyncHandler(async (req, res) => {
   const { error } = createCategorySchema.validate(req.body);
-  if (error) {
-    return res.error(400, error.message);
-  }
-  const { category_name, parent_category_id } = req.body;
-  const files = req.files;
+  if (error) return res.error(400, error.message);
 
-  const exists = await Category.findOne({ category_name: category_name.trim(), status: 1 });
-  if (exists) {
-    return res.error(400, 'Category already exists');
-  }
+  const { category_name, parent_category_id } = req.body;
+  const trimmedName = category_name.trim();
+  const files = req.files || [];
+
+  const existingCategory = await Category.findOne({ category_name: trimmedName, status: 1 });
+  if (existingCategory) return res.error(400, 'Category already exists');
 
   const categoryData = {
-    category_name: category_name.trim(),
-    category_photo: [],
+    category_name: trimmedName,
     status: 1,
+    category_photo: [],
   };
 
   if (parent_category_id) {
+    if (!mongoose.Types.ObjectId.isValid(parent_category_id)) {
+      return res.error(400, 'Invalid parent category ID format');
+    }
+    console.log(parent_category_id);
+    const parentExists = await Category.findOne({ _id: parent_category_id, status: 1 });
+    if (!parentExists) return res.error(400, 'Parent category not found');
     categoryData.parent_category_id = parent_category_id;
   }
 
   const newCategory = await Category.create(categoryData);
 
-  if (files && files.length > 0) {
-    const uploadedKeys = [];
+  if (files.length > 0) {
+    const uploadedPhotos = await Promise.all(
+      files.map(async (file) => {
+        const key = `categories/${newCategory._id}/${file.originalname}`;
+        await uploadFile(file.buffer, key, file.mimetype);
+        return key;
+      })
+    );
 
-    for (const file of files) {
-      const key = `categories/${newCategory._id.toString()}/${file.originalname}`;
-      await uploadFile(file.buffer, key, file.mimetype);
-      uploadedKeys.push(key);
-    }
-
-    newCategory.category_photo = uploadedKeys;
+    newCategory.category_photo = uploadedPhotos;
     await newCategory.save();
   }
 
@@ -135,6 +139,11 @@ const deleteCategory = asyncHandler(async (req, res) => {
   const category = await Category.findOne({ _id: categoryId, status: 1 });
   if (!category) {
     return res.error(404, 'Category not found');
+  }
+
+  const subCategories = await Category.find({ parent_category_id: categoryId, status: 1 });
+  if (subCategories.length > 0) {
+    return res.error(400, 'Cannot delete category with sub categories');
   }
 
   category.status = 0;

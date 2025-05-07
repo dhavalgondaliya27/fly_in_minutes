@@ -3,6 +3,10 @@ import { createUserSchema, loginUserSchema } from './user.validator.js';
 import { User } from './users.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import verifyGoogleToken from '../../services/google.js';
+import sendEmail from '../../services/email/forgot_email.js';
+import jwt from 'jsonwebtoken';
+import appConfig from '../../config/appConfig.js';
+import bcrypt from 'bcrypt';
 
 const emailExist = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -163,4 +167,56 @@ const googleLogin = asyncHandler(async (req, res) => {
   );
 });
 
-export { emailExist, verifyOtp, createUser, loginUser, getCurrentUser, googleLogin };
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.error(404, 'User not found');
+  }
+
+  if (user.googleId) {
+    return res.error(400, 'Login with google account');
+  }
+
+  const resetToken = jwt.sign({ userId: user._id }, appConfig.jwtSecret, {
+    expiresIn: '1h',
+  });
+
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+  await user.save();
+
+  await sendEmail(email, resetToken);
+
+  res.success(200, null, 'Password reset email sent');
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token } = req.query;
+  const { password } = req.body;
+  let decoded;
+  try {
+    decoded = jwt.verify(token, appConfig.jwtSecret);
+  } catch (err) {
+    return res.error(401, 'Invalid or expired token');
+  }
+  const user = await User.findOne({
+    _id: decoded.userId,
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return res.error(401, 'Invalid or expired token');
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  console.log('hashedPassword', hashedPassword);
+  user.password = hashedPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+  
+  return res.success(200, null, 'Password reset successfully');
+});
+
+export { emailExist, verifyOtp, createUser, loginUser, getCurrentUser, googleLogin, forgotPassword, resetPassword };

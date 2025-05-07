@@ -48,6 +48,12 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date
+    },
     status: {
       type: Number,
       enum: [0, 1, -1],
