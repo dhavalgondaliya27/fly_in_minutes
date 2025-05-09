@@ -3,10 +3,11 @@ import { createUserSchema, loginUserSchema } from './user.validator.js';
 import { User } from './users.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import verifyGoogleToken from '../../services/google.js';
-import sendEmail from '../../services/email/forgot_email.js';
+import forgotPasswordEmail from '../../services/email/forgot_email.js';
 import jwt from 'jsonwebtoken';
 import appConfig from '../../config/appConfig.js';
 import bcrypt from 'bcrypt';
+import sendOtpEmail from '../../services/email/send_otp.js';
 
 const emailExist = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -16,7 +17,7 @@ const emailExist = asyncHandler(async (req, res) => {
   }
   const userExist = await User.findOne({ email });
   if (userExist) {
-    if (userExist.google_id !== null) {
+    if (userExist.googleId !== null) {
       return res.success(200, null, 'Email already exists, please login with google');
     } else if (userExist.password) {
       return res.success(200, null, 'Please Enter Password');
@@ -25,7 +26,7 @@ const emailExist = asyncHandler(async (req, res) => {
       userExist.otpExpiration = Date.now() + 1000 * 60 * 5;
       await userExist.save();
       //send email
-      // await sendEmail(email, otp);
+      await sendOtpEmail(email, otp);
       return res.success(200, null, 'Otp sent successfully');
     }
   }
@@ -35,7 +36,7 @@ const emailExist = asyncHandler(async (req, res) => {
     otpExpiration: Date.now() + 1000 * 60 * 5,
   });
   //send email
-  // await sendEmail(email, otp);
+  await sendOtpEmail(email, otp);
   return res.success(200, null, 'Otp sent successfully');
 });
 
@@ -187,7 +188,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
   await user.save();
 
-  await sendEmail(email, resetToken);
+  await forgotPasswordEmail(email, resetToken);
 
   res.success(200, null, 'Password reset email sent');
 });

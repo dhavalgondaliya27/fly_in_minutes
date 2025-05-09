@@ -13,7 +13,9 @@ const userSchema = new Schema(
     username: {
       type: String,
       unique: true,
-      sparse: true
+      trim: true,
+      sparse: true,
+      default: null
     },
     email: {
       type: String,
@@ -27,7 +29,6 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      require: true,
     },
     googleId: {
       type: String,

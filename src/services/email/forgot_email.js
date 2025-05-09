@@ -3,7 +3,7 @@ import appConfig from '../../config/appConfig.js';
 const sender = appConfig.emailSender;
 const password = appConfig.emailPassword;
 
-const sendEmail = async (recipient, resetToken) => {
+const forgotPasswordEmail = async (recipient, resetToken) => {
   if (!recipient || recipient.includes('string')) {
     console.warn('Skipping email: Invalid or test recipient.');
     return;
@@ -45,4 +45,4 @@ const sendEmail = async (recipient, resetToken) => {
   }
 };
 
-export default sendEmail;
+export default forgotPasswordEmail;
