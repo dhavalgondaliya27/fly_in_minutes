@@ -1,10 +1,12 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 import appConfig from '../config/appConfig.js';
 
-const generateToken = (user) => {
+const generateAccessToken = user => {
   const payload = {
     _id: user._id,
     email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
   };
 
   const accessToken = jwt.sign(payload, appConfig.jwtSecret, { expiresIn: appConfig.tokenExpire });
@@ -12,8 +14,19 @@ const generateToken = (user) => {
   return accessToken;
 };
 
-const decodeToken = async (token) => {
+const generateRefreshToken = user => {
+  const payload = {
+    _id: user._id,
+    type: 'refresh',
+  };
+  const refreshToken = jwt.sign(payload, appConfig.jwtSecret, {
+    expiresIn: appConfig.refreshTokenExpire,
+  });
+  return refreshToken;
+};
+
+const decodeToken = async token => {
   return jwt.verify(token, appConfig.jwtSecret);
 };
 
-export { generateToken, decodeToken };
+export { generateAccessToken, generateRefreshToken, decodeToken };

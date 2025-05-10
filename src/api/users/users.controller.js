@@ -1,4 +1,4 @@
-import { generateToken } from '../../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
 import { createUserSchema, loginUserSchema } from './user.validator.js';
 import { User } from './users.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -58,8 +58,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
   user.otp = null;
   user.otpExpiration = null;
   await user.save();
-  const accessToken = generateToken(user);
-  return res.success(200, { accessToken }, 'Otp verified successfully');
+  return res.success(200, null, 'Otp verified successfully');
 });
 
 const createUser = asyncHandler(async (req, res) => {
@@ -68,22 +67,30 @@ const createUser = asyncHandler(async (req, res) => {
   if (error) {
     return res.error(400, error.message);
   }
-  const userId = req.user._id;
   const { firstName, lastName, email, DOB, password } = req.body;
   const username = email.split('@')[0];
-  const user = await User.findById(userId);
+  const user = await User.findOne({ email }).select('-password -refreshToken');
   if (!user) {
     return res.error(404, 'User not found');
   }
   user.firstName = firstName;
   user.lastName = lastName;
-  user.email = email;
   user.DOB = DOB;
   user.password = password;
   user.username = username;
 
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+  const option = {
+    httpOnly: false,
+    secure: true,
+    sameSite: 'Strict',
+    maxAge: 100 * 365 * 24 * 60 * 60 * 1000,
+  };
+  res.cookie('refreshToken', refreshToken, option);
+  user.refreshToken = refreshToken;
   await user.save();
-  return res.success(200, user, 'User create successfully');
+  return res.success(200, { user, accessToken }, 'User create successfully');
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -96,24 +103,30 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({
     $or: [{ email: email }, { username: email }],
-  });
+  }).select(('+refreshToken'));
 
   if (!user) {
     return res.error(404, 'User not found');
   }
-
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
-    return res.error(400, 'Please enter valid password');
+    return res.error(400, 'Invalid password');
   }
 
-  const accessToken = generateToken(user);
+  const accessToken = generateAccessToken(user);
+  const option = {
+    httpOnly: false,
+    secure: true,
+    sameSite: 'Strict',
+    maxAge: 100 * 365 * 24 * 60 * 60 * 1000,
+  };
+  res.cookie('refreshToken', user.refreshToken, option);
 
   return res.success(200, { user, accessToken }, 'User login successfully');
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select('-password');
   if (!user) {
     return res.error(401, 'User not found');
   }
@@ -156,8 +169,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       email,
     });
   }
-  
-  const accessToken = generateToken(user);
+  const accessToken = generateAccessToken(user);
   return res.success(
     200,
     {
@@ -185,7 +197,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   });
 
   user.resetPasswordToken = resetToken;
-  user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+  user.resetPasswordExpires = Date.now() + 3600000;
   await user.save();
 
   await forgotPasswordEmail(email, resetToken);
@@ -194,14 +206,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { token } = req.query;
-  const { password } = req.body;
+  const { token, password } = req.body;
   let decoded;
-  try {
-    decoded = jwt.verify(token, appConfig.jwtSecret);
-  } catch (err) {
-    return res.error(401, 'Invalid or expired token');
-  }
+  decoded = jwt.verify(token, appConfig.jwtSecret);
   const user = await User.findOne({
     _id: decoded.userId,
     resetPasswordToken: token,
@@ -210,14 +217,42 @@ const resetPassword = asyncHandler(async (req, res) => {
   if (!user) {
     return res.error(401, 'Invalid or expired token');
   }
-  const hashedPassword = await bcrypt.hash(password, 10);
-  console.log('hashedPassword', hashedPassword);
-  user.password = hashedPassword;
+  user.password = password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
   await user.save();
-  
+
   return res.success(200, null, 'Password reset successfully');
 });
 
-export { emailExist, verifyOtp, createUser, loginUser, getCurrentUser, googleLogin, forgotPassword, resetPassword };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) {
+    return res.error(401, 'Refresh token is required');
+  }
+  const decoded = jwt.verify(refreshToken, appConfig.jwtSecret);
+  if (!decoded) {
+    return res.error(401, 'Invalid refresh token');
+  }
+  const user = await User.findById(decoded._id).select('+refreshToken');
+  if (!user) {
+    return res.error(401, 'User not found');
+  }
+  if (user.refreshToken !== refreshToken) {
+    return res.error(401, 'Invalid refresh token');
+  }
+  const accessToken = generateAccessToken(user);
+  return res.success(200, { accessToken }, 'Access token refreshed');
+});
+
+export {
+  emailExist,
+  verifyOtp,
+  createUser,
+  loginUser,
+  getCurrentUser,
+  googleLogin,
+  forgotPassword,
+  resetPassword,
+  refreshAccessToken,
+};

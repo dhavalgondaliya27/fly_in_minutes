@@ -8,6 +8,7 @@ const appConfig = {
   mongoDBName: process.env.DB_NAME,
   jwtSecret: process.env.JWT_SECRET,
   tokenExpire: '30d',
+  refreshTokenExpire: '36525d', //100years
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   awsAccessKey: process.env.AWS_ACCESS_KEY_ID,
   awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
